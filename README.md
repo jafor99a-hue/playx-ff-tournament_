@@ -1,0 +1,10 @@
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDDweLEqB6C12QS67Ug5U2_s_HHgnreB5s",
+  authDomain: "palyx-ff-tournament.firebaseapp.com",
+  projectId: "palyx-ff-tournament",
+  storageBucket: "palyx-ff-tournament.firebasestorage.app",
+  messagingSenderId: "809369357695",
+  appId: "1:809369357695:web:1dc8a94c9eab0466815e4a",
+  measurementId: "G-FYMQDGLWGN"
+};
