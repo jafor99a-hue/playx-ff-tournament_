@@ -6,6 +6,6 @@ const firebaseConfig = {
   projectId: "palyx-ff-tournament-1",
   storageBucket: "palyx-ff-tournament-1.firebasestorage.app",
   messagingSenderId: "653240531571",
-  appId: "1:653240531571:web:38cac37eb375ee216e4806",
-  measurementId: "G-8R9NYJT5NK"
+  appId: "1:653240531571:web:327ffbf5f0dae3246e4806",
+  measurementId: "G-HN4HZYK4X7"
 };
