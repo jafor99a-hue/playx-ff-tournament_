@@ -1,4 +1,5 @@
-export const firebaseConfig = {
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
   apiKey: "AIzaSyC4TxxVRoslJA5dfLrTkANgrKeoucK7Heo",
   authDomain: "palyx-ff-tournament-1.firebaseapp.com",
   databaseURL: "https://palyx-ff-tournament-1-default-rtdb.asia-southeast1.firebasedatabase.app",
