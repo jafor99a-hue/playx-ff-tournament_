@@ -1,11 +1,11 @@
+
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyC4TxxVRoslJA5dfLrTkANgrKeoucK7Heo",
-  authDomain: "palyx-ff-tournament-1.firebaseapp.com",
-  databaseURL: "https://palyx-ff-tournament-1-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "palyx-ff-tournament-1",
-  storageBucket: "palyx-ff-tournament-1.firebasestorage.app",
-  messagingSenderId: "653240531571",
-  appId: "1:653240531571:web:327ffbf5f0dae3246e4806",
-  measurementId: "G-HN4HZYK4X7"
+  apiKey: "AIzaSyDDweLEqB6C12QS67Ug5U2_s_HHgnreB5s",
+  authDomain: "palyx-ff-tournament.firebaseapp.com",
+  projectId: "palyx-ff-tournament",
+  storageBucket: "palyx-ff-tournament.firebasestorage.app",
+  messagingSenderId: "809369357695",
+  appId: "1:809369357695:web:1dc8a94c9eab0466815e4a",
+  measurementId: "G-FYMQDGLWGN"
 };
