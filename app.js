@@ -8,7 +8,7 @@ let auth, db, currentUser = null, authMode = "register", selectedTournament = nu
 const $ = s => document.querySelector(s);
 function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),4000)}
 function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-if(!configured){$("#authMessage").textContent="প্রথমে firebase-config.js-এ Firebase config বসাও, তারপর Authentication ও Firestore চালু করো।";$("#tournamentList").innerHTML='<p class="muted">Firebase config না দেওয়া পর্যন্ত ডেটা লোড হবে না। README-BN.md পড়ো।</p>';}
+if(!configured){$("#authMessage").textContent="প্রথমে firebase-config.js-এ Firebase config বসাও, তারপর Authentication ও Firestore চালু করো।";$("#tournamentList").innerHTML='<p class="muted">Firebase config না দেওয়া পর্যন্ত ডেটা লোড হবে না। README-BN.md পড়ো।</p>'}
 else {
  const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);
  onAuthStateChanged(auth, async user=>{

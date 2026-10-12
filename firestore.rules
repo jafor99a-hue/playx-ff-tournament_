@@ -1,22 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
-    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
-    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
-    function isRegistered(tournamentId) {
-      return signedIn() &&
-        exists(/databases/$(database)/documents/registrations/$(request.auth.uid + "_" + tournamentId));
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
     }
 
     match /users/{uid} {
-      allow read: if isSelf(uid) || isAdmin();
-      allow create: if isSelf(uid)
-        && request.resource.data.keys().hasOnly(['displayName', 'email', 'createdAt'])
-        && request.resource.data.email == request.auth.token.email;
-      allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']);
-      allow delete: if isAdmin();
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
 
     match /tournaments/{tournamentId} {
@@ -25,23 +16,18 @@ service cloud.firestore {
     }
 
     match /registrations/{registrationId} {
-      allow create: if signedIn()
-        && registrationId == request.auth.uid + "_" + request.resource.data.tournamentId
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly(['uid','tournamentId','inGameName','freeFireUid','teamName','status','createdAt'])
-        && request.resource.data.inGameName is string
-        && request.resource.data.inGameName.size() >= 1
-        && request.resource.data.inGameName.size() <= 40
-        && request.resource.data.freeFireUid is string
-        && request.resource.data.freeFireUid.matches('^[0-9]{5,20}$')
-        && request.resource.data.status == 'registered'
-        && exists(/databases/$(database)/documents/tournaments/$(request.resource.data.tournamentId));
-      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
-      allow update, delete: if isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.uid == request.auth.uid || isAdmin()
+      );
+      allow update, delete: if request.auth != null && (
+        resource.data.uid == request.auth.uid || isAdmin()
+      );
     }
 
     match /roomDetails/{tournamentId} {
-      allow read: if isAdmin() || isRegistered(tournamentId);
+      allow read: if request.auth != null;
       allow create, update, delete: if isAdmin();
     }
 
