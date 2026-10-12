@@ -108,15 +108,3 @@
     });
 
     // ২. লগইন
-    document.getElementById("login-btn").addEventListener("click", () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-      if(!email || !password) return alert("ইমেইল ও পাসওয়ার্ড দিন!");
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => alert("সফলভাবে লগইন হয়েছে!"))
-        .catch((err) => alert("লগইন ব্যর্থ: " + err.message));
-    });
-
-    // ৩. লগআউট
-    
