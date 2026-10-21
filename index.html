@@ -1,16 +1,458 @@
-<!-- Firebase App (Core) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<!-- Firebase Auth (লগইন ও সাইন-আপের জন্য) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<!-- Firebase Firestore (ডেটাবেসে তথ্য সেভ করার জন্য) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-<!-- ইউজার সাইন-আপ ও গেমের তথ্য দেওয়ার ফর্ম -->
-<div class="auth-container">
-    <h2>ইউজার রেজিস্ট্রেশন ও টুর্নামেন্ট জয়েন</h2>
-    <input type="email" id="email" placeholder="ইমেল লিখুন">
-    <input type="password" id="password" placeholder="পাসওয়ার্ড দিন">
-    <input type="text" id="gameName" placeholder="ইন-গেম নাম (In-game Name)">
-    <input type="text" id="gameUid" placeholder="ফ্রি ফায়ার ইউআইডি (Free Fire UID)">
-    <button onclick="registerAndJoinTournament()">রেজিস্ট্রেশন ও জয়েন করুন</button>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#10152f">
+<meta name="description" content="Sky Jump - a fun endless runner game">
+<title>Sky Jump</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #10152f;
+  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+.game {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+h1 {
+  margin: 5px 0;
+  font-size: 35px;
+  color: #70e7ff;
+  text-shadow: 0 0 18px #287bff;
+}
+.subtitle {
+  color: #b7c8ef;
+  margin: 5px 0 15px;
+}
+.stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.stat {
+  flex: 1;
+  background: #20294c;
+  padding: 12px 5px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+.stat span {
+  color: #70e7ff;
+}
+.stage {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #536cba;
+  border-radius: 18px;
+  box-shadow: 0 0 24px #2844a755;
+  background: #152653;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 22px;
+  background: #10152fbd;
+}
+.overlay h2 {
+  font-size: 32px;
+  margin: 8px;
+  color: #70e7ff;
+}
+.overlay p {
+  line-height: 1.5;
+  color: #eef3ff;
+}
+button {
+  border: 0;
+  border-radius: 14px;
+  padding: 14px 24px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#startBtn {
+  background: #70e7ff;
+  color: #10152f;
+  min-width: 175px;
+}
+#jumpBtn {
+  width: 100%;
+  margin-top: 12px;
+  background: #735cff;
+  color: white;
+  min-height: 58px;
+  touch-action: manipulation;
+}
+.help {
+  color: #b7c8ef;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+</style>
+</head>
+
+<body>
+<main class="game">
+  <h1>☁️ SKY JUMP</h1>
+  <p class="subtitle">Jump high. Beat your best!</p>
+
+  <div class="stats">
+    <div class="stat">SCORE<br><span id="score">0</span></div>
+    <div class="stat">BEST<br><span id="best">0</span></div>
+  </div>
+
+  <div class="stage">
+    <canvas id="gameCanvas" width="400" height="570"
+      aria-label="Sky Jump game area"></canvas>
+
+    <div class="overlay" id="overlay">
+      <h2 id="overlayTitle">SKY JUMP</h2>
+      <p id="overlayText">
+        Tap to jump over obstacles.<br>
+        How far can you go?
+      </p>
+      <button id="startBtn">▶ START GAME</button>
+    </div>
+  </div>
+
+  <button id="jumpBtn">⬆ TAP TO JUMP</button>
+  <p class="help">
+    Tap the game or button to jump.<br>
+    Avoid obstacles and collect your score!
+  </p>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  const scoreEl = document.getElementById("score");
+  const bestEl = document.getElementById("best");
+  const overlay = document.getElementById("overlay");
+  const overlayTitle = document.getElementById("overlayTitle");
+  const overlayText = document.getElementById("overlayText");
+  const startBtn = document.getElementById("startBtn");
+  const jumpBtn = document.getElementById("jumpBtn");
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const groundY = 485;
+
+  let running = false;
+  let gameOver = false;
+  let score = 0;
+  let best = 0;
+  let speed = 4;
+  let frame = 0;
+  let obstacles = [];
+  let clouds = [];
+  let lastTime = 0;
+  let animationId = 0;
+
+  try {
+    best = Number(localStorage.getItem("skyJumpBest")) || 0;
+  } catch (e) {}
+  bestEl.textContent = best;
+
+  const player = {
+    x: 65,
+    y: groundY - 42,
+    w: 34,
+    h: 42,
+    vy: 0,
+    onGround: true
+  };
+
+  function resetGame() {
+    score = 0;
+    speed = 4;
+    frame = 0;
+    obstacles = [];
+    player.y = groundY - player.h;
+    player.vy = 0;
+    player.onGround = true;
+    scoreEl.textContent = "0";
+  }
+
+  function startGame() {
+    cancelAnimationFrame(animationId);
+    resetGame();
+    running = true;
+    gameOver = false;
+    overlay.style.display = "none";
+    lastTime = performance.now();
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function jump() {
+    if (!running) {
+      if (gameOver) startGame();
+      return;
+    }
+
+    if (player.onGround) {
+      player.vy = -13.5;
+      player.onGround = false;
+    }
+  }
+
+  function endGame() {
+    running = false;
+    gameOver = true;
+
+    if (score > best) {
+      best = score;
+      bestEl.textContent = best;
+      try {
+        localStorage.setItem("skyJumpBest", String(best));
+      } catch (e) {}
+    }
+
+    overlayTitle.textContent = "GAME OVER!";
+    overlayText.innerHTML =
+      "Your score: <b>" + score +
+      "</b><br>Best score: <b>" + best +
+      "</b><br>Try again and jump higher!";
+    startBtn.textContent = "↻ PLAY AGAIN";
+    overlay.style.display = "flex";
+  }
+
+  function makeClouds() {
+    clouds = [
+      {x: 35, y: 90, s: 1},
+      {x: 230, y: 150, s: 0.8},
+      {x: 325, y: 65, s: 0.65}
+    ];
+  }
+  makeClouds();
+
+  function drawCloud(x, y, s) {
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.beginPath();
+    ctx.arc(x, y, 15*s, 0, Math.PI*2);
+    ctx.arc(x+17*s, y-9*s, 20*s, 0, Math.PI*2);
+    ctx.arc(x+38*s, y, 14*s, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawBackground() {
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#253f83");
+    sky.addColorStop(1, "#70d8f2");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    // Sun
+    ctx.fillStyle = "#fff3a1";
+    ctx.beginPath();
+    ctx.arc(325, 85, 31, 0, Math.PI*2);
+    ctx.fill();
+
+    clouds.forEach(c => drawCloud(c.x, c.y, c.s));
+
+    // Distant hills
+    ctx.fillStyle = "#65c7b0";
+    ctx.beginPath();
+    ctx.moveTo(0, 410);
+    ctx.quadraticCurveTo(80, 330, 160, 410);
+    ctx.quadraticCurveTo(280, 320, 400, 405);
+    ctx.lineTo(400, H);
+    ctx.lineTo(0, H);
+    ctx.fill();
+
+    // Ground
+    ctx.fillStyle = "#24684f";
+    ctx.fillRect(0, groundY, W, H-groundY);
+    ctx.fillStyle = "#a8f06e";
+    ctx.fillRect(0, groundY, W, 9);
+
+    ctx.fillStyle = "#3b9165";
+    for (let x = 0; x < W; x += 32) {
+      ctx.fillRect(x, groundY+23, 15, 5);
+    }
+  }
+
+  function drawPlayer() {
+    const x = player.x;
+    const y = player.y;
+
+    // Body
+    ctx.fillStyle = "#ffca55";
+    ctx.fillRect(x+5, y+12, 25, 25);
+
+    // Head
+    ctx.fillStyle = "#ffd9aa";
+    ctx.beginPath();
+    ctx.arc(x+18, y+9, 13, 0, Math.PI*2);
+    ctx.fill();
+
+    // Hair
+    ctx.fillStyle = "#563a32";
+    ctx.beginPath();
+    ctx.arc(x+17, y+4, 12, Math.PI, Math.PI*2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = "#182442";
+    ctx.fillRect(x+22, y+8, 3, 4);
+
+    // Scarf
+    ctx.fillStyle = "#ff5b75";
+    ctx.fillRect(x+2, y+16, 13, 5);
+
+    // Legs
+    ctx.strokeStyle = "#182442";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    const step = running && player.onGround
+      ? Math.sin(frame * 0.35) * 5 : 0;
+    ctx.beginPath();
+    ctx.moveTo(x+11, y+36);
+    ctx.lineTo(x+9+step, y+42);
+    ctx.moveTo(x+25, y+36);
+    ctx.lineTo(x+26-step, y+42);
+    ctx.stroke();
+  }
+
+  function drawObstacle(o) {
+    ctx.fillStyle = "#df4c63";
+    ctx.fillRect(o.x, o.y, o.w, o.h);
+
+    ctx.fillStyle = "#ff8490";
+    ctx.fillRect(o.x+5, o.y+5, 6, o.h-10);
+
+    ctx.fillStyle = "#ad304c";
+    ctx.fillRect(o.x, o.y+o.h-7, o.w, 7);
+  }
+
+  function intersects(a, b) {
+    return a.x < b.x+b.w &&
+      a.x+a.w > b.x &&
+      a.y < b.y+b.h &&
+      a.y+a.h > b.y;
+  }
+
+  function update(dt) {
+    frame += dt;
+    clouds.forEach(c => {
+      c.x -= 0.25 * c.s * dt;
+      if (c.x < -60) c.x = W+40;
+    });
+
+    if (!running) return;
+
+    // Gravity and jump
+    player.vy += 0.62 * dt;
+    player.y += player.vy * dt;
+
+    if (player.y + player.h >= groundY) {
+      player.y = groundY-player.h;
+      player.vy = 0;
+      player.onGround = true;
+    }
+
+    // Create obstacles
+    if (frame > 55) {
+      frame = 0;
+      obstacles.push({
+        x: W+10,
+        y: groundY-34,
+        w: 25 + Math.random()*12,
+        h: 34
+      });
+    }
+
+    obstacles.forEach(o => {
+      o.x -= speed*dt;
+    });
+    obstacles = obstacles.filter(o => o.x+o.w > -10);
+
+    // Collision
+    const hitbox = {
+      x: player.x+5,
+      y: player.y+4,
+      w: player.w-10,
+      h: player.h-5
+    };
+
+    for (const o of obstacles) {
+      if (intersects(hitbox, o)) {
+        endGame();
+        return;
+      }
+    }
+
+    score += dt * 0.12;
+    scoreEl.textContent = Math.floor(score);
+    speed = Math.min(8, 4 + score/180);
+  }
+
+  function draw() {
+    drawBackground();
+    obstacles.forEach(drawObstacle);
+    drawPlayer();
+
+    if (running) {
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("KEEP JUMPING!", 14, 28);
+    }
+  }
+
+  function loop(now) {
+    const dt = Math.min((now-lastTime)/16.67, 2);
+    lastTime = now;
+    update(dt);
+    draw();
+
+    if (running) {
+      animationId = requestAnimationFrame(loop);
+    }
+  }
+
+  startBtn.addEventListener("click", startGame);
+  jumpBtn.addEventListener("pointerdown", jump);
+  canvas.addEventListener("pointerdown", jump);
+
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space" || e.code === "ArrowUp") {
+      e.preventDefault();
+      if (!running && !gameOver) startGame();
+      else jump();
+    }
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>
