@@ -1,0 +1,21 @@
+
+{
+  "id": "./",
+  "name": "Sky Jump",
+  "short_name": "Sky Jump",
+  "description": "A fun endless runner game",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#10152f",
+  "theme_color": "#10152f",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
